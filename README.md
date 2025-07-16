@@ -18,6 +18,27 @@ Traditional CUDA profiling tools like Nsight Systems and `nvprof` provide detail
 
 ---
 
+---
+
+## 🔍 cuWise vs Other Tools
+
+cuWise is a **focused, offline CUDA optimization assistant**. Here's how it compares with other approaches:
+
+| Feature                                 | **cuWise (This Tool)**                           | **Local LLM (e.g., DeepSeek manually)**        | **ChatGPT / Copilot**                        |
+|-----------------------------------------|--------------------------------------------------|------------------------------------------------|----------------------------------------------|
+| Offline and private                     | Yes                                              | Yes (if self-hosted)                           | No                                           |
+| Accepts `.cu` files + profiling logs    | Yes – directly parsed                            | No – manual input required                     | No – manual input required                   |
+| Domain-specific prompting               | Yes – CUDA-optimized prompts built-in            | No – prompts must be crafted manually          | No – general-purpose responses               |
+| Command-line automation                 | Yes – designed for CLI use                       | No – interactive only                          | No – chat-based only                         |
+| Code + performance suggestions          | Yes – revised kernel code and tuning tips        | Partial – depends on prompt quality            | Sometimes                                    |
+| Handles long profiling logs             | Yes – safe truncation built in                   | No – risk of overflow                          | Yes (with token limits)                      |
+| Hardware-aware insights                 | Yes – parses GPU info from logs                  | No                                             | No                                           |
+| API key required                        | No – works fully offline                         | No (for local models)                          | Yes – OpenAI or GitHub login required        |
+| Best suited for                         | CUDA developers seeking repeatable optimization  | ML researchers experimenting with local models | General coding help and suggestions          |
+
+
+---
+
 ## Features
 
 - **Offline Inference** — zero cloud usage
@@ -109,3 +130,13 @@ Traditional CUDA profiling tools like Nsight Systems and `nvprof` provide detail
 
     **Note:** The shared memory optimization is a simple example of how shared memory can be used to reduce memory traffic and improve memory access patterns. In some cases, more sophisticated memory access patterns or data layout changes may be needed to fully leverage shared memory.
 ```
+### Roadmap
+ - Log + Kernel File Input
+
+ - Offline LLM Support
+
+ - Summary Output File
+
+ - Nsight .nvvp Parser
+
+ - GUI or VSCode Plugin (planned)
