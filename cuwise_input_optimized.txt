@@ -1,0 +1,122 @@
+
+#include <iostream>
+#include <math.h>
+#include <cuda_runtime.h>
+
+// Kernel function to add the elements of two arrays
+__global__
+void add(int n, float *x, float *y)
+{
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n)
+        y[i] = x[i] + y[i];
+}
+
+int main(void)
+{
+    int N = 1 << 20;  // 2^20 = 1M elements
+    float *x, *y;
+    cudaError_t err; // Declare error variable
+
+    cudaEvent_t start, stop;
+    cudaDeviceProp prop;
+
+    // Allocate Unified Memory – accessible from CPU or GPU
+    err = cudaMallocManaged(&x, N * sizeof(float));
+    if (err != cudaSuccess) {
+        std::cerr << "cudaMallocManaged for x failed: " << cudaGetErrorString(err) << std::endl;
+        return 1;
+    }
+    err = cudaMallocManaged(&y, N * sizeof(float));
+    if (err != cudaSuccess) {
+        std::cerr << "cudaMallocManaged for y failed: " << cudaGetErrorString(err) << std::endl;
+        // Free x if it was allocated
+        cudaFree(x);
+        return 1;
+    }
+
+
+    // Initialize input arrays
+    for (int i = 0; i < N; i++) {
+        x[i] = 1.0f;
+        y[i] = 2.0f;
+    }
+
+    // Launch the kernel
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+    cudaEventRecord(start);
+
+    cudaGetDeviceProperties(&prop, 0);
+
+    int blockSize = 256;
+    int numBlocks = (N + blockSize - 1) / blockSize;
+
+    add<<<numBlocks, blockSize>>>(N, x, y);
+
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+
+
+    float ms = 0;
+    cudaEventElapsedTime(&ms, start, stop);
+
+    // Check for kernel launch errors
+    err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        std::cerr << "add kernel launch failed: " << cudaGetErrorString(err) << std::endl;
+        // Free memory
+        cudaFree(x);
+        cudaFree(y);
+        return 1;
+    }
+
+    // Wait for GPU to finish before accessing on host
+    cudaDeviceSynchronize();
+
+    // Check for errors during device synchronization
+    err = cudaGetLastError();
+     if (err != cudaSuccess) {
+        std::cerr << "cudaDeviceSynchronize failed: " << cudaGetErrorString(err) << std::endl;
+        // Free memory
+        cudaFree(x);
+        cudaFree(y);
+        return 1;
+    }
+
+
+    // Verify result
+    float maxError = 0.0f;
+    for (int i = 0; i < N; i++) {
+        maxError = fmax(maxError, fabs(y[i] - 3.0f));
+    }
+
+    std::cout << " Max error: " << maxError << std::endl;
+
+    // Print simulated profile
+    std::cout << "Kernel time: " << ms << " ms" << std::endl;
+    std::cout << "Array size: " << N << std::endl;
+
+    std::cout << "GPU: " << prop.name << "\n";
+    std::cout << "SMs: " << prop.multiProcessorCount << "\n";
+    std::cout << "Shared memory per block: " << prop.sharedMemPerBlock << " bytes\n";
+    std::cout << "Max threads per block: " << prop.maxThreadsPerBlock << "\n";
+
+    // Free memory
+    cudaFree(x);
+    cudaFree(y);
+
+    return 0;
+}
+ptxas info    : 0 bytes gmem
+ptxas info    : Compiling entry function '_Z3addiPfS_' for 'sm_70'
+ptxas info    : Function properties for _Z3addiPfS_
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 10 registers, 376 bytes cmem[0]
+ Max error: 0
+Kernel time: 2.17667 ms
+Array size: 1048576
+GPU: Tesla T4
+SMs: 40
+Shared memory per block: 49152 bytes
+Max threads per block: 1024
