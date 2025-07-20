@@ -1,4 +1,4 @@
-# cuWise 🧠⚡ — AI-Powered CUDA Optimization Assistant
+# cuWise — AI-Powered CUDA Optimization Assistant
 
 `cuWise` is a lightweight CLI tool that uses a local Large Language Model (LLM) to analyze CUDA kernel profiling logs and suggest performance optimizations — **completely offline and private**.
 
